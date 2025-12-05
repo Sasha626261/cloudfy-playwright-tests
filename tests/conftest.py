@@ -1,20 +1,35 @@
-import os
-import requests
 import pytest
+import os
+from datetime import datetime
 
-QASE_API_TOKEN = os.getenv("QASE_TESTOPS_API_TOKEN")
-QASE_PROJECT = "STPCT"
+# Глобальный список для сбора шагов
+test_steps = []
 
-def qase_add_step(run_id, case_id, step_name, status="passed"):
-    """Add step to Qase test result"""
-    if not QASE_API_TOKEN:
-        return
+def add_step(step_name, status="passed"):
+    """Добавить шаг в лог"""
+    test_steps.append({
+        "step": step_name,
+        "status": status,
+        "time": datetime.now().strftime("%H:%M:%S")
+    })
+    print(f"[{status.upper()}] {step_name}")
+
+@pytest.fixture(scope="function", autouse=True)
+def step_logger(request):
+    """Fixture для логирования шагов"""
+    global test_steps
+    test_steps = []  # Очистить перед каждым тестом
     
-    url = f"https://api.qase.io/v1/result/{QASE_PROJECT}/{run_id}"
-    headers = {
-        "Token": QASE_API_TOKEN,
-        "Content-Type": "application/json"
-    }
+    yield
     
-    # Simplified - just for demonstration
-    print(f"Qase step: {step_name} - {status}")
+    # После выполнения теста - вывести summary
+    if test_steps:
+        print("\n" + "="*60)
+        print("TEST STEPS SUMMARY:")
+        print("="*60)
+        for i, step in enumerate(test_steps, 1):
+            print(f"{i}. [{step['time']}] {step['step']} - {step['status']}")
+        print("="*60)
+
+# Экспортируем функцию для использования в тестах
+pytest.add_step = add_step
