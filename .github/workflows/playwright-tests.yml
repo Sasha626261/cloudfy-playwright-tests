@@ -36,7 +36,6 @@ jobs:
             --qase-testops-project=STPCT \
             --qase-testops-run-title="GitHub Run #${{ github.run_number }}" \
             --timeout=120 \
-            --headed=false \
             -v -s
       
       - name: Upload test results
