@@ -1,5 +1,4 @@
 import pytest
-import os
 from datetime import datetime
 
 # Глобальный список для сбора шагов
@@ -31,5 +30,27 @@ def step_logger(request):
             print(f"{i}. [{step['time']}] {step['step']} - {step['status']}")
         print("="*60)
 
-# Экспортируем функцию для использования в тестах
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Hook для добавления информации в отчет"""
+    outcome = yield
+    report = outcome.get_result()
+    
+    if report.when == "call":
+        if test_steps:
+            # Формируем красивую таблицу
+            summary = "\n## Test Execution Steps:\n\n"
+            summary += "| # | Time | Step | Status |\n"
+            summary += "|---|------|------|--------|\n"
+            
+            for i, step in enumerate(test_steps, 1):
+                status_emoji = "✅" if step['status'] == 'passed' else "❌"
+                summary += f"| {i} | {step['time']} | {step['step']} | {status_emoji} {step['status']} |\n"
+            
+            # Добавляем summary к отчету
+            if not hasattr(report, 'sections'):
+                report.sections = []
+            report.sections.append(('Test Steps', summary))
+
+# Экспортируем функцию
 pytest.add_step = add_step
