@@ -24,7 +24,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest-timeout
           playwright install chromium
       
       - name: Run tests
@@ -36,7 +35,16 @@ jobs:
             --qase-testops-project=STPCT \
             --qase-testops-run-title="GitHub Run #${{ github.run_number }}" \
             --timeout=120 \
+            --html=report.html \
+            --self-contained-html \
             -v -s
+      
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: report.html
       
       - name: Upload test results
         if: always()
@@ -44,3 +52,34 @@ jobs:
         with:
           name: test-results
           path: test-results/
+```
+
+4. **Commit changes**
+
+---
+
+## **Шаг 5: Запустите тест**
+
+После всех коммитов тест **автоматически запустится**.
+
+Или запустите вручную:
+1. **Actions** → **Playwright Tests with Qase** (слева)
+2. **Run workflow** → **Run workflow**
+
+---
+
+## **Шаг 6: Проверьте результаты**
+
+### **В GitHub Actions:**
+1. Откройте последний запуск в Actions
+2. Раскройте **"Run tests"**
+3. Прокрутите вниз - увидите таблицу:
+```
+============================================================
+TEST STEPS SUMMARY:
+============================================================
+1. [16:30:15] Open CloudFX homepage - passed
+2. [16:30:18] Click Account button - passed
+3. [16:30:19] Fill username: user.16062@cloudfy.com - passed
+...
+============================================================
