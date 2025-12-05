@@ -10,6 +10,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     
     steps:
       - name: Checkout code
@@ -23,6 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+          pip install pytest-timeout
           playwright install chromium
       
       - name: Run tests
@@ -33,7 +35,9 @@ jobs:
             --qase-mode=testops \
             --qase-testops-project=STPCT \
             --qase-testops-run-title="GitHub Run #${{ github.run_number }}" \
-            -v
+            --timeout=120 \
+            --headed=false \
+            -v -s
       
       - name: Upload test results
         if: always()
